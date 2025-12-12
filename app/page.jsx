@@ -88,7 +88,6 @@ function buildClientFromStorage() {
     return null;
   }
 }
-}
 
 // =====================
 // Game rules
