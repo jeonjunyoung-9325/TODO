@@ -75,8 +75,8 @@ const LS_URL_KEY = "https://swyugmwmtzziyeqvpbja.supabase.co";
 const LS_ANON_KEY = "sb_publishable_iAyq6icLzY-x3Wzp_ET5Dg_qi_f_rqq";
 
 function buildClientFromStorage() {
-  const envUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
-  const envAnon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+  const envUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://swyugmwmtzziyeqvpbja.supabase.co").trim();
+  const envAnon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_iAyq6icLzY-x3Wzp_ET5Dg_qi_f_rqq").trim();
 
   const url = (envUrl || safeGet(LS_URL_KEY)).trim();
   const anon = (envAnon || safeGet(LS_ANON_KEY)).trim();
