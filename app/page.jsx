@@ -18,7 +18,6 @@ import {
   Gift,
   Dice6,
   Clock3,
-  Settings,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
@@ -70,23 +69,10 @@ function safeDel(k) {
   }
 }
 
+const LS_URL_KEY = "todo_rpg_supabase_url";
+const LS_ANON_KEY = "todo_rpg_supabase_anon";
 
-const LS_URL_KEY = "https://swyugmwmtzziyeqvpbja.supabase.co";
-const LS_ANON_KEY = "sb_publishable_iAyq6icLzY-x3Wzp_ET5Dg_qi_f_rqq";
-
-function buildClientFromStorage() {
-  const envUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://swyugmwmtzziyeqvpbja.supabase.co").trim();
-  const envAnon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_iAyq6icLzY-x3Wzp_ET5Dg_qi_f_rqq").trim();
-
-  const url = (envUrl || safeGet(LS_URL_KEY)).trim();
-  const anon = (envAnon || safeGet(LS_ANON_KEY)).trim();
-
-  if (!url || !anon) return null;
-  try {
-    return createClient(url, anon);
-  } catch {
-    return null;
-  }
+function buildClientFromStorage() {$1
 }
 
 // =====================
@@ -381,18 +367,6 @@ export default function Page() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function openSetup() {
-    // 키/클라이언트를 제거해서 Setup 화면으로 복귀
-    safeDel(LS_URL_KEY);
-    safeDel(LS_ANON_KEY);
-    setSb(null);
-    setSession(null);
-    setTodos([]);
-    setSettings(null);
-    setEmail("");
-    setAuthMsg("");
   }
 
   // =====================
@@ -835,7 +809,6 @@ export default function Page() {
         email={session.user.email}
         loading={loading}
         onSignOut={signOut}
-        onOpenSetup={openSetup}
         title={`TODO RPG · ${titleByLevel(levelState.level)}`}
       />
 
@@ -911,7 +884,7 @@ function Shell({ children }) {
   );
 }
 
-function TopBar({ title, email, onSignOut, onOpenSetup, loading }) {
+function TopBar({ title, email, onSignOut, loading }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
       <div className="min-w-0">
@@ -919,15 +892,6 @@ function TopBar({ title, email, onSignOut, onOpenSetup, loading }) {
         <div className="truncate text-lg font-semibold">{title}</div>
       </div>
       <div className="flex items-center gap-2">
-        <button
-          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 disabled:opacity-60"
-          onClick={onOpenSetup}
-          disabled={loading}
-          title="연결 설정"
-        >
-          <Settings className="h-4 w-4" />
-          설정
-        </button>
         <button
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 disabled:opacity-60"
           onClick={onSignOut}
@@ -1351,232 +1315,4 @@ function TodoRow({ t, onToggle, onRemove }) {
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5">{priorityLabel(t.priority)}</span>
             <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5">+{gain} XP</span>
-            {est ? <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5">~{est}m</span> : null}
-
-            {dueLabel ? (
-              <span
-                className={`rounded-full border px-2 py-0.5 ${
-                  overdue ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white"
-                }`}
-              >
-                마감 {dueLabel}
-              </span>
-            ) : null}
-
-            {(t.tags || []).slice(0, 4).map((tag) => (
-              <span key={tag} className="rounded-full border border-slate-200 bg-white px-2 py-0.5">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </button>
-
-      <button
-        className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 shadow-sm hover:bg-slate-50 md:opacity-0 md:group-hover:opacity-100"
-        onClick={onRemove}
-        aria-label="remove"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
-    </motion.div>
-  );
-}
-
-function Field({ icon, label, children }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3">
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-slate-50 text-slate-700">{icon}</span>
-        {label}
-      </div>
-      <div className="mt-2">{children}</div>
-    </div>
-  );
-}
-
-function LootModal({ open, loot, onClose }) {
-  return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
-          onMouseDown={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.96, opacity: 0, y: 8 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.98, opacity: 0, y: 6 }}
-            transition={{ type: "spring", stiffness: 220, damping: 24 }}
-            className="w-[min(520px,100%)] rounded-3xl border border-slate-200 bg-white p-6 shadow-xl"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Dice6 className="h-4 w-4" />
-              상자 오픈
-            </div>
-
-            <div className="mt-5 flex items-center justify-center">
-              <motion.div
-                initial={{ rotate: -2 }}
-                animate={{ rotate: [0, -2, 2, -1, 1, 0] }}
-                transition={{ duration: 0.6 }}
-                className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-5 text-center"
-              >
-                <div className="text-xs text-slate-500">결과</div>
-                <div className="mt-1 text-xl font-semibold">{loot?.label || "-"}</div>
-                <div className="mt-2 text-sm text-slate-600">보너스 +{loot?.bonus ?? 0} XP</div>
-              </motion.div>
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <button
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
-                onClick={onClose}
-              >
-                닫기
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  );
-}
-
-function Toast({ toast, onClose }) {
-  return (
-    <AnimatePresence>
-      {toast ? (
-        <motion.div
-          key={toast.title + toast.desc}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          className="fixed bottom-6 left-1/2 z-50 w-[min(520px,calc(100%-24px))] -translate-x-1/2"
-        >
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-lg">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">{toast.title}</div>
-              <div className="mt-0.5 text-xs text-slate-500">{toast.desc}</div>
-            </div>
-            <button
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium hover:bg-slate-50"
-              onClick={onClose}
-            >
-              닫기
-            </button>
-          </div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  );
-}
-
-function AuthCard({ email, setEmail, onLogin, msg, loading }) {
-  return (
-    <Card>
-      <div className="flex items-center gap-2 text-sm font-semibold">
-        <Gift className="h-4 w-4" />
-        로그인
-      </div>
-      <div className="mt-2 text-xs text-slate-500">이메일 OTP/매직링크</div>
-
-      <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
-        <input
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onLogin();
-          }}
-        />
-        <button
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:opacity-90 disabled:opacity-60"
-          onClick={onLogin}
-          disabled={loading}
-        >
-          시작
-        </button>
-      </div>
-
-      {msg ? <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3 text-xs text-slate-600">{msg}</div> : null}
-
-      <div className="mt-4 text-xs text-slate-500">로그인하면 기기 바꿔도 데이터가 유지됩니다.</div>
-    </Card>
-  );
-}
-
-function SetupCard({ onSave }) {
-  const [url, setUrl] = useState(() => safeGet(LS_URL_KEY));
-  const [anon, setAnon] = useState(() => safeGet(LS_ANON_KEY));
-  const [warn, setWarn] = useState("");
-
-  return (
-    <Card>
-      <div className="flex items-center gap-2 text-sm font-semibold">
-        <Settings className="h-4 w-4" />
-        연결 설정
-      </div>
-
-      <div className="mt-2 text-xs text-slate-500">
-        Supabase의 <span className="font-semibold">Project URL</span>과 <span className="font-semibold">anon public key</span>를 붙여넣으세요.
-      </div>
-
-      <div className="mt-4 grid gap-3">
-        <div>
-          <div className="text-xs font-medium text-slate-700">Project URL</div>
-          <input
-            className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-            placeholder="https://xxxx.supabase.co"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <div className="text-xs font-medium text-slate-700">anon public key</div>
-          <input
-            className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-200"
-            placeholder="eyJhbGciOi..."
-            value={anon}
-            onChange={(e) => setAnon(e.target.value)}
-          />
-        </div>
-
-        {warn ? <div className="rounded-2xl border border-slate-200 bg-white p-3 text-xs text-slate-700">{warn}</div> : null}
-
-        <button
-          className="mt-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:opacity-90"
-          onClick={() => {
-            setWarn("");
-            const u = url.trim();
-            const a = anon.trim();
-            if (!u || !a) {
-              setWarn("URL과 anon key를 모두 입력해주세요.");
-              return;
-            }
-            if (a.toLowerCase().includes("service_role")) {
-              setWarn("⚠️ service_role 키는 절대 넣으면 안 됩니다. anon(public)만 사용하세요.");
-              return;
-            }
-            onSave(u, a);
-          }}
-        >
-          저장하고 시작
-        </button>
-
-        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
-          <div className="font-semibold">DB 체크(필수)</div>
-          <div className="mt-2">todos 테이블에 소요시간 컬럼이 필요합니다:</div>
-          <pre className="mt-2 overflow-auto rounded-2xl bg-white p-3 text-[11px]">alter table public.todos add column if not exists estimate_minutes int;</pre>
-          <div className="mt-2 text-slate-500">RLS 정책/테이블 생성은 이전 안내대로 설정하세요.</div>
-        </div>
-      </div>
-    </Card>
-  );
-}
+            {est ? <span cl
